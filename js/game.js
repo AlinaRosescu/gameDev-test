@@ -13,78 +13,16 @@
     app.view.style.backgroundColor = "#D3D3D3";
 
     let graphicsContainer = new PIXI.Container();
+    let shape;
     let sprite;
     let hit;
     let gravity = 0.1;
-    const graphicTypesArray = ["circle", "ellipse", "rectangle", "triangle", "pentagon", "hexagon", "random"];
-
-    //random number function
-    const randomNumberFromRange = (min, max) => {
-        let range = max - min;
-        let random = Math.random() * range;
-        return min + random;
-    };
-
-    //random color generator
-    function randomColor() {
-        return "0x" + Math.random().toString(16).slice(2, 8);
-    }
-
-    //create random graphic primitive
-    const getShape = () => {
-        let shape = new PIXI.Graphics();
-        let graphicType = graphicTypesArray[Math.floor(Math.random() * graphicTypesArray.length)];
-        shape.beginFill(randomColor());
-        shape.lineStyle(0);
-
-        if (graphicType === "circle") {
-            shape.drawCircle(0, 0, randomNumberFromRange(30, 60));
-        } else if (graphicType === "rectangle") {
-            shape.drawRect(0, 0, randomNumberFromRange(50, 100), randomNumberFromRange(50, 100));
-        } else if (graphicType === "ellipse") {
-            shape.drawEllipse(0, 0, randomNumberFromRange(30, 60), randomNumberFromRange(30, 60));
-        } else if (graphicType === "triangle") {
-            shape.drawPolygon([-32, 64, 32, 64, 0, 0]);
-        } else if (graphicType === "pentagon") {
-            shape.drawPolygon([0, -50, -48, -15, -29, 40, 29, 40, 48, -15]);
-        } else if (graphicType === "hexagon") {
-            shape.drawPolygon([25, -43, -25, -43, -50, 0, -25, 43, 25, 43, 50, 0]);
-        } else if (graphicType === "random") {
-            let randomLineNr = Math.floor(randomNumberFromRange(4, 12));
-            shape.drawStar(0, 0, randomLineNr, randomNumberFromRange(20, 50), randomNumberFromRange(30, 50), 0);
-        }
-
-        return shape;
-    };
-
-    //create sprite from graphic texture
-    const getGraphicSprite = (graphic) => {
-        let graphicSprite = new PIXI.Sprite(app.renderer.generateTexture(graphic));
-        graphicSprite.anchor.x = 0.5;
-        graphicSprite.y = 0 - graphicSprite.height;
-        graphicSprite.x = randomNumberFromRange(50, 550);
-        graphicSprite.vy = 0;
-        graphicSprite.interactive = true;
-        graphicSprite.buttonMode = true;
-        graphicSprite.on('pointerdown', () => {
-            hit = true;
-            graphicSprite.parent.removeChild(graphicSprite);
-        });
-        graphicSprite
-            .on('mouseover', () => {
-                hit = true;
-            })
-            .on('mouseout', () => {
-                hit = false;
-            });
-
-        return graphicSprite;
-    };
 
     //add click event on canvas
     app.renderer.plugins.interaction.on('pointerdown', (event) => {
         if (!hit) {
-            let sprite = getGraphicSprite(getShape());
+            let shape = new ShapeModel();
+            let sprite = new SpriteModel(app,shape.getShape(randomShapeType()));
             sprite.x = event.data.global.x;
             sprite.y = event.data.global.y;
             graphicsContainer.addChild(sprite);
@@ -125,8 +63,10 @@
         }
 
         for (let i = 0; i < counter; i++) {
-            sprite = getGraphicSprite(getShape());
+            shape = new ShapeModel();
+            sprite = new SpriteModel(app,shape.getShape(randomShapeType()));
             graphicsContainer.addChild(sprite);
+            hit = sprite.getHitValue();
         }
         graphicsContainer.children.forEach((item) => {
             item.vy += gravity;
